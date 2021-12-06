@@ -21,5 +21,12 @@
   "homepage": "https://github.com/kanekireal/puresystem-sdk#readme",
   "devDependencies": {
     "typescript": "^4.5.2"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "@types/node": "^16.11.11",
+    "mongodb": "^4.2.1"
   }
 }
