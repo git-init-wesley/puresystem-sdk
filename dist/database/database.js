@@ -70,6 +70,7 @@ var database;
     var DatabaseNoSuchData = database_exceptions_1.database_exceptions.DatabaseNoSuchData;
     var DatabaseError = database_exceptions_1.database_exceptions.DatabaseError;
     var User = user_1.user.User;
+    var WarnState = warn_1.warn.WarnState;
 
     class Database {
         constructor() {
@@ -92,7 +93,10 @@ var database;
                 try {
                     return this._logsCollection.find();
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -103,7 +107,10 @@ var database;
                 try {
                     return this._logsCollection.find({userId: userId});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -114,7 +121,10 @@ var database;
                 try {
                     return this._logsCollection.find({action: action});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -126,22 +136,14 @@ var database;
                 try {
                     _tempLog = yield this._logsCollection.findOne({uuid: mongodb_1.ObjectId.createFromHexString(uuid)});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempLog === null)
                     throw new DatabaseNoSuchData();
                 return _tempLog;
-            });
-        }
-
-        addLog(log) {
-            var _a;
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    return this._logsCollection.create(log);
-                } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
-                }
             });
         }
 
@@ -151,7 +153,10 @@ var database;
                 try {
                     return this._warnsCollection.find();
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -160,9 +165,12 @@ var database;
             var _a;
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    return this._warnsCollection.find({accepted: true});
+                    return this._warnsCollection.find({state: WarnState.ACCEPTED});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -174,7 +182,10 @@ var database;
                 try {
                     _tempWarn = yield this._warnsCollection.findOne({uuid: mongodb_1.ObjectId.createFromHexString(uuid)});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -189,7 +200,10 @@ var database;
                 try {
                     _tempWarn = yield this._warnsCollection.findOne({userId: userId});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -204,7 +218,10 @@ var database;
                 try {
                     _tempWarn = yield this._warnsCollection.findOne({moderatorId: moderatorId});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -221,9 +238,13 @@ var database;
                 yield this.addLog(log);
                 let warn = Warn.create(log, userId, cause, moderator.uuid);
                 try {
-                    return this._warnsCollection.create(warn);
+                    return yield this._warnsCollection.create(warn);
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    console.log(e);
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -235,15 +256,74 @@ var database;
                     throw new UserPermissionNotEnough();
                 let log = Log.create(moderator.uuid.toString(), LogActions.WARN_OPEN, `The Moderator (${moderator.uuid.toString()}) open warn. (${warnId})`);
                 yield this.addLog(log);
+                let _findWarn = yield this.getWarnById(warnId);
+                _findWarn.logs.push(log.uuid);
                 let _tempWarn;
                 try {
-                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: mongodb_1.ObjectId.createFromHexString(warnId)}, {
+                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                        logs: _findWarn.logs,
                         closed: false,
+                        closedModeratorId: undefined,
                         lastUpdated: Date.now(),
                         lastUpdatedModeratorId: moderator.uuid
                     });
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
+                }
+                if (_tempWarn == null)
+                    throw new DatabaseNoSuchData();
+                return _tempWarn;
+            });
+        }
+
+        acceptWarn(warnId, moderator) {
+            var _a;
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!moderator.permissions.includes(UserPermissions.WARN_STATE))
+                    throw new UserPermissionNotEnough();
+                let log = Log.create(moderator.uuid.toString(), LogActions.WARN_STATE, `The Moderator (${moderator.uuid.toString()}) update state (${WarnState.ACCEPTED}) warn. (${warnId})`);
+                yield this.addLog(log);
+                let _findWarn = yield this.getWarnById(warnId);
+                _findWarn.logs.push(log.uuid);
+                let _tempWarn;
+                try {
+                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                        state: WarnState.ACCEPTED
+                    });
+                } catch (e) {
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
+                }
+                if (_tempWarn == null)
+                    throw new DatabaseNoSuchData();
+                return _tempWarn;
+            });
+        }
+
+        refuseWarn(warnId, moderator) {
+            var _a;
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!moderator.permissions.includes(UserPermissions.WARN_STATE))
+                    throw new UserPermissionNotEnough();
+                let log = Log.create(moderator.uuid.toString(), LogActions.WARN_STATE, `The Moderator (${moderator.uuid.toString()}) update state (${WarnState.ACCEPTED}) warn. (${warnId})`);
+                yield this.addLog(log);
+                let _findWarn = yield this.getWarnById(warnId);
+                _findWarn.logs.push(log.uuid);
+                let _tempWarn;
+                try {
+                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                        state: WarnState.REFUSED
+                    });
+                } catch (e) {
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -258,15 +338,21 @@ var database;
                     throw new UserPermissionNotEnough();
                 let log = Log.create(moderator.uuid.toString(), LogActions.WARN_UPDATE, `The Moderator (${moderator.uuid.toString()}) update warn. (${warnId})`);
                 yield this.addLog(log);
+                let _findWarn = yield this.getWarnById(warnId);
+                _findWarn.logs.push(log.uuid);
                 let _tempWarn;
                 try {
-                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: mongodb_1.ObjectId.createFromHexString(warnId)}, {
+                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                        logs: _findWarn.logs,
                         cause: cause,
                         lastUpdated: Date.now(),
                         lastUpdatedModeratorId: moderator.uuid
                     });
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -281,16 +367,22 @@ var database;
                     throw new UserPermissionNotEnough();
                 let log = Log.create(moderator.uuid.toString(), LogActions.WARN_CLOSE, `The Moderator (${moderator.uuid.toString()}) close warn. (${warnId})`);
                 yield this.addLog(log);
+                let _findWarn = yield this.getWarnById(warnId);
+                _findWarn.logs.push(log.uuid);
                 let _tempWarn;
                 try {
-                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: mongodb_1.ObjectId.createFromHexString(warnId)}, {
+                    _tempWarn = yield this._warnsCollection.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                        logs: _findWarn.logs,
                         closed: true,
                         closedModeratorId: moderator.uuid,
                         lastUpdated: Date.now(),
                         lastUpdatedModeratorId: moderator.uuid
                     });
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempWarn == null)
                     throw new DatabaseNoSuchData();
@@ -304,7 +396,10 @@ var database;
                 try {
                     return this._usersCollection.find();
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
@@ -316,7 +411,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOne({uuid: mongodb_1.ObjectId.createFromHexString(uuid)});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -331,7 +429,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOne({discordId: discordId});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -346,7 +447,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOne({minecraftUUID: minecraftUUID});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -369,7 +473,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOneAndUpdate({uuid: _findUser.uuid}, {permissions: _findUser.permissions});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -392,7 +499,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOneAndUpdate({uuid: _findUser.uuid}, {permissions: _findUser.permissions});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -409,7 +519,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOneAndUpdate({uuid: userId}, {discordId: discordId});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -426,7 +539,10 @@ var database;
                 try {
                     _tempUser = yield this._usersCollection.findOneAndUpdate({uuid: userId}, {minecraftUUID: minecraftUUID});
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
                 if (_tempUser == null)
                     throw new DatabaseNoSuchData();
@@ -441,9 +557,26 @@ var database;
                 let log = Log.create(moderator.uuid.toString(), LogActions.USER_CREATE, `The Moderator (${moderator.uuid.toString()}) create user. (${user.uuid})`);
                 yield this.addLog(log);
                 try {
-                    return this._usersCollection.create(user);
+                    return yield this._usersCollection.create(user);
                 } catch (e) {
-                    throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
+                }
+            });
+        }
+
+        addLog(log) {
+            var _a;
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    return this._logsCollection.create(log);
+                } catch (e) {
+                    if (e != null && e instanceof Error) {
+                        throw new DatabaseError(((_a = e) === null || _a === void 0 ? void 0 : _a.message));
+                    }
+                    throw e;
                 }
             });
         }
