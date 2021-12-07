@@ -8,13 +8,14 @@ export module log {
         WARN_CLOSE,
         WARN_OPEN,
         WARN_UPDATE,
+        WARN_STATE,
         PERMISSION_ADD_USER,
         PERMISSION_REMOVE_USER,
+        WHITELIST_ADD_GUILD,
+        WHITELIST_REMOVE_GUILD,
         USER_UPDATE_DISCORD_ID,
         USER_UPDATE_MINECRAFT_UUID,
         USER_CREATE,
-        WHITELIST_ADD_GUILD,
-        WHITELIST_REMOVE_GUILD,
     }
 
     export interface ILog {

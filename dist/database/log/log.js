@@ -11,13 +11,14 @@ var log;
         LogActions[LogActions["WARN_CLOSE"] = 1] = "WARN_CLOSE";
         LogActions[LogActions["WARN_OPEN"] = 2] = "WARN_OPEN";
         LogActions[LogActions["WARN_UPDATE"] = 3] = "WARN_UPDATE";
-        LogActions[LogActions["PERMISSION_ADD_USER"] = 4] = "PERMISSION_ADD_USER";
-        LogActions[LogActions["PERMISSION_REMOVE_USER"] = 5] = "PERMISSION_REMOVE_USER";
-        LogActions[LogActions["USER_UPDATE_DISCORD_ID"] = 6] = "USER_UPDATE_DISCORD_ID";
-        LogActions[LogActions["USER_UPDATE_MINECRAFT_UUID"] = 7] = "USER_UPDATE_MINECRAFT_UUID";
-        LogActions[LogActions["USER_CREATE"] = 8] = "USER_CREATE";
-        LogActions[LogActions["WHITELIST_ADD_GUILD"] = 9] = "WHITELIST_ADD_GUILD";
-        LogActions[LogActions["WHITELIST_REMOVE_GUILD"] = 10] = "WHITELIST_REMOVE_GUILD";
+        LogActions[LogActions["WARN_STATE"] = 4] = "WARN_STATE";
+        LogActions[LogActions["PERMISSION_ADD_USER"] = 5] = "PERMISSION_ADD_USER";
+        LogActions[LogActions["PERMISSION_REMOVE_USER"] = 6] = "PERMISSION_REMOVE_USER";
+        LogActions[LogActions["WHITELIST_ADD_GUILD"] = 7] = "WHITELIST_ADD_GUILD";
+        LogActions[LogActions["WHITELIST_REMOVE_GUILD"] = 8] = "WHITELIST_REMOVE_GUILD";
+        LogActions[LogActions["USER_UPDATE_DISCORD_ID"] = 9] = "USER_UPDATE_DISCORD_ID";
+        LogActions[LogActions["USER_UPDATE_MINECRAFT_UUID"] = 10] = "USER_UPDATE_MINECRAFT_UUID";
+        LogActions[LogActions["USER_CREATE"] = 11] = "USER_CREATE";
     })(LogActions = log_1.LogActions || (log_1.LogActions = {}));
     log_1.LogSchema = new mongoose_1.Schema({
         uuid: {type: mongodb_1.ObjectId, required: true, unique: true, index: true},
