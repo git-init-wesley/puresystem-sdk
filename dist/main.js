@@ -17,4 +17,4 @@ Object.defineProperty(exports, "__esModule", {value: true});
 __exportStar(require("./database/database"), exports);
 __exportStar(require("./puresystem_sdk/puresystem_sdk"), exports);
 //TODO: Test
-__exportStar(require("./test"), exports);
+//export * from './test';
