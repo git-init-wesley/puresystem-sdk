@@ -43,6 +43,7 @@ var user;
         UserPermissions.WARN_CLOSE,
         UserPermissions.WARN_OPEN,
         UserPermissions.WARN_UPDATE,
+        UserPermissions.WARN_STATE,
         UserPermissions.PERMISSION_ADD_USER,
         UserPermissions.PERMISSION_REMOVE_USER,
         UserPermissions.WHITELIST_ADD_GUILD,
