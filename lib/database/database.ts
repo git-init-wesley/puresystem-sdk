@@ -31,6 +31,7 @@ export module database {
     import DatabaseNoSuchData = database_exceptions.DatabaseNoSuchData;
     import DatabaseError = database_exceptions.DatabaseError;
     import User = user.User;
+    import WarnState = warn.WarnState;
 
     export class Database implements IDatabase {
         private _mongoose = require('mongoose');
@@ -51,7 +52,10 @@ export module database {
             try {
                 return this._logsCollection!.find();
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -59,7 +63,10 @@ export module database {
             try {
                 return this._logsCollection!.find({userId: userId});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -67,7 +74,10 @@ export module database {
             try {
                 return this._logsCollection!.find({action: action});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -76,34 +86,35 @@ export module database {
             try {
                 _tempLog = await this._logsCollection!.findOne({uuid: ObjectId.createFromHexString(uuid)})
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempLog === null) throw new DatabaseNoSuchData();
             return _tempLog;
 
         }
 
-        public async addLog(log: Log): Promise<ILog> {
-            try {
-                return this._logsCollection!.create(log);
-            } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
-            }
-        }
-
         public async getWarns(): Promise<Array<IWarn>> {
             try {
                 return this._warnsCollection!.find();
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
         public async getWarnsOnlyAccepted(): Promise<Array<IWarn>> {
             try {
-                return this._warnsCollection!.find({accepted: true});
+                return this._warnsCollection!.find({state: WarnState.ACCEPTED});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -112,7 +123,10 @@ export module database {
             try {
                 _tempWarn = await this._warnsCollection!.findOne({uuid: ObjectId.createFromHexString(uuid)});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempWarn == null) throw new DatabaseNoSuchData();
             return _tempWarn;
@@ -123,7 +137,10 @@ export module database {
             try {
                 _tempWarn = await this._warnsCollection!.findOne({userId: userId});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempWarn == null) throw new DatabaseNoSuchData();
             return _tempWarn;
@@ -134,7 +151,10 @@ export module database {
             try {
                 _tempWarn = await this._warnsCollection!.findOne({moderatorId: moderatorId});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempWarn == null) throw new DatabaseNoSuchData();
             return _tempWarn;
@@ -148,9 +168,13 @@ export module database {
 
             let warn: Warn = Warn.create(log, userId, cause, moderator.uuid!);
             try {
-                return this._warnsCollection!.create(warn);
+                return await this._warnsCollection!.create(warn);
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                console.log(e);
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -160,15 +184,73 @@ export module database {
             let log: Log = Log.create(moderator.uuid!.toString(), LogActions.WARN_OPEN, `The Moderator (${moderator.uuid!.toString()}) open warn. (${warnId})`);
             await this.addLog(log);
 
-            let _tempWarn: IWarn | null;
+            let _findWarn: IWarn = await this.getWarnById(warnId);
+            _findWarn.logs!.push(log.uuid!);
+
+            let _tempWarn: IWarn | null
             try {
-                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: ObjectId.createFromHexString(warnId)}, {
+                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                    logs: _findWarn.logs,
                     closed: false,
+                    closedModeratorId: undefined,
                     lastUpdated: Date.now(),
                     lastUpdatedModeratorId: moderator.uuid
                 });
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
+            }
+
+            if (_tempWarn == null) throw new DatabaseNoSuchData();
+            return _tempWarn;
+        }
+
+        public async acceptWarn(warnId: string, moderator: IUser): Promise<IWarn> {
+            if (!moderator.permissions!.includes(UserPermissions.WARN_STATE)) throw new UserPermissionNotEnough();
+
+            let log: Log = Log.create(moderator.uuid!.toString(), LogActions.WARN_STATE, `The Moderator (${moderator.uuid!.toString()}) update state (${WarnState.ACCEPTED}) warn. (${warnId})`);
+            await this.addLog(log);
+
+            let _findWarn: IWarn = await this.getWarnById(warnId);
+            _findWarn.logs!.push(log.uuid!);
+
+            let _tempWarn: IWarn | null
+            try {
+                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                    state: WarnState.ACCEPTED
+                });
+            } catch (e) {
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
+            }
+
+            if (_tempWarn == null) throw new DatabaseNoSuchData();
+            return _tempWarn;
+        }
+
+        public async refuseWarn(warnId: string, moderator: IUser): Promise<IWarn> {
+            if (!moderator.permissions!.includes(UserPermissions.WARN_STATE)) throw new UserPermissionNotEnough();
+
+            let log: Log = Log.create(moderator.uuid!.toString(), LogActions.WARN_STATE, `The Moderator (${moderator.uuid!.toString()}) update state (${WarnState.ACCEPTED}) warn. (${warnId})`);
+            await this.addLog(log);
+
+            let _findWarn: IWarn = await this.getWarnById(warnId);
+            _findWarn.logs!.push(log.uuid!);
+
+            let _tempWarn: IWarn | null
+            try {
+                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                    state: WarnState.REFUSED
+                });
+            } catch (e) {
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
 
             if (_tempWarn == null) throw new DatabaseNoSuchData();
@@ -181,16 +263,24 @@ export module database {
             let log: Log = Log.create(moderator.uuid!.toString(), LogActions.WARN_UPDATE, `The Moderator (${moderator.uuid!.toString()}) update warn. (${warnId})`);
             await this.addLog(log);
 
-            let _tempWarn: IWarn | null;
+            let _findWarn: IWarn = await this.getWarnById(warnId);
+            _findWarn.logs!.push(log.uuid!);
+
+            let _tempWarn: IWarn | null
             try {
-                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: ObjectId.createFromHexString(warnId)}, {
+                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                    logs: _findWarn.logs,
                     cause: cause,
                     lastUpdated: Date.now(),
                     lastUpdatedModeratorId: moderator.uuid
                 });
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
+
             if (_tempWarn == null) throw new DatabaseNoSuchData();
             return _tempWarn;
         }
@@ -201,17 +291,25 @@ export module database {
             let log: Log = Log.create(moderator.uuid!.toString(), LogActions.WARN_CLOSE, `The Moderator (${moderator.uuid!.toString()}) close warn. (${warnId})`);
             await this.addLog(log);
 
-            let _tempWarn: IWarn | null;
+            let _findWarn: IWarn = await this.getWarnById(warnId);
+            _findWarn.logs!.push(log.uuid!);
+
+            let _tempWarn: IWarn | null
             try {
-                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: ObjectId.createFromHexString(warnId)}, {
+                _tempWarn = await this._warnsCollection!.findOneAndUpdate({uuid: _findWarn.uuid}, {
+                    logs: _findWarn.logs,
                     closed: true,
                     closedModeratorId: moderator.uuid,
                     lastUpdated: Date.now(),
                     lastUpdatedModeratorId: moderator.uuid
                 });
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
+
             if (_tempWarn == null) throw new DatabaseNoSuchData();
             return _tempWarn;
         }
@@ -220,7 +318,10 @@ export module database {
             try {
                 return this._usersCollection!.find();
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
@@ -229,7 +330,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOne({uuid: ObjectId.createFromHexString(uuid)});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -240,7 +344,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOne({discordId: discordId});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -251,7 +358,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOne({minecraftUUID: minecraftUUID})
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -270,7 +380,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOneAndUpdate({uuid: _findUser.uuid}, {permissions: _findUser.permissions});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -289,7 +402,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOneAndUpdate({uuid: _findUser.uuid}, {permissions: _findUser.permissions});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -303,7 +419,10 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOneAndUpdate({uuid: userId}, {discordId: discordId});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
@@ -317,12 +436,14 @@ export module database {
             try {
                 _tempUser = await this._usersCollection!.findOneAndUpdate({uuid: userId}, {minecraftUUID: minecraftUUID});
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
             if (_tempUser == null) throw new DatabaseNoSuchData();
             return _tempUser;
         }
-
 
         public async createUser(discordId: string, moderator: IUser): Promise<IUser> {
             let user: User = User.create(discordId, undefined);
@@ -331,9 +452,23 @@ export module database {
             await this.addLog(log);
 
             try {
-                return this._usersCollection!.create(user);
+                return await this._usersCollection!.create(user);
             } catch (e) {
-                throw new DatabaseError(((e as Error | null)?.message));
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
+            }
+        }
+
+        public async addLog(log: Log): Promise<ILog> {
+            try {
+                return this._logsCollection!.create(log);
+            } catch (e) {
+                if (e != null && e instanceof Error) {
+                    throw new DatabaseError(((e as Error | null)?.message));
+                }
+                throw e;
             }
         }
 
