@@ -1,12 +1,12 @@
 {
   "name": "puresystem-sdk",
-  "version": "1.0.0",
+  "version": "1.0.0-beta+000",
   "description": "The SDK allowing the global creation of PureSystem.",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/main.js",
-    "dev": "tsc -w & nodemon dist/main.js"
+    "dev": "tsc -w & nodemon -r dotenv/config dist/main.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@types/node": "^16.11.11",
+    "dotenv": "^10.0.0",
     "mongodb": "^4.2.1",
     "mongoose": "^6.0.14"
   }
