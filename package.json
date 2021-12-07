@@ -1,9 +1,12 @@
 {
   "name": "puresystem-sdk",
-  "version": "1.0.0-beta+000",
+  "version": "1.0.0-beta.202112071640",
   "description": "The SDK allowing the global creation of PureSystem.",
   "main": "dist/main.js",
+  "types": "dist/main.d.js",
   "scripts": {
+    "prepublish": "tsc",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/main.js",
     "dev": "tsc -w & nodemon -r dotenv/config dist/main.js"
