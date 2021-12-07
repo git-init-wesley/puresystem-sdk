@@ -1,5 +1,5 @@
 {
-  "name": "puresystem-sdk",
+  "name": "@puresystem/puresystem-sdk",
   "version": "1.0.0-beta.202112071640",
   "description": "The SDK allowing the global creation of PureSystem.",
   "main": "dist/main.js",
