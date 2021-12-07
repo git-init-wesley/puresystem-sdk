@@ -1,9 +1,10 @@
-import {mongoose} from "../database/mongoose";
+import {database} from "../database/database";
 
 export module puresystem_sdk {
-    import Mongoose = mongoose.Mongoose;
 
-    export class PureSystemSdk extends Mongoose {
+    import Database = database.Database;
+
+    export class PureSystemSdk extends Database {
         private static _instance?: PureSystemSdk;
         public static readonly instance: PureSystemSdk = PureSystemSdk._instance ??= new PureSystemSdk();
 
