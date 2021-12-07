@@ -1,6 +1,6 @@
 {
   "name": "@puresystem/puresystem-sdk",
-  "version": "1.0.0-beta.202112071640",
+  "version": "1.1.0-beta.202112071640",
   "description": "The SDK allowing the global creation of PureSystem.",
   "main": "dist/main.js",
   "types": "dist/main.d.js",
@@ -13,15 +13,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kanekireal/puresystem-sdk.git"
+    "url": "git+https://github.com/puresystem-team/puresystem-sdk.git"
   },
-  "keywords": [],
+  "keywords": [
+    "puresystem",
+    "puresystem-team",
+    "puresystem-sdk"
+  ],
   "author": "Wesley Levasseur <contact@wesley-dev.codes> (kanekireal)",
   "license": "CC-BY-NC-ND-4.0",
   "bugs": {
-    "url": "https://github.com/kanekireal/puresystem-sdk/issues"
+    "url": "https://github.com/puresystem-team/puresystem-sdk/issues"
   },
-  "homepage": "https://github.com/kanekireal/puresystem-sdk#readme",
+  "homepage": "https://github.com/puresystem-team/puresystem-sdk#readme",
   "devDependencies": {
     "typescript": "^4.5.2"
   },
