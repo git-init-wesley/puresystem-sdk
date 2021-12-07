@@ -8,7 +8,7 @@ var warn;
     let WarnState;
     (function (WarnState) {
         WarnState[WarnState["PENDING"] = 0] = "PENDING";
-        WarnState[WarnState["CLOSED"] = 1] = "CLOSED";
+        WarnState[WarnState["REFUSED"] = 1] = "REFUSED";
         WarnState[WarnState["ACCEPTED"] = 2] = "ACCEPTED";
     })(WarnState = warn.WarnState || (warn.WarnState = {}));
     warn.WarnSchema = new mongoose_1.Schema({
@@ -42,7 +42,7 @@ var warn;
 
         static create(log, userId, cause, moderatorId) {
             let _tempDate = Date.now();
-            return new Warn(undefined, undefined, cause, false, undefined, WarnState.PENDING, [log.uuid], _tempDate, moderatorId, moderatorId, _tempDate);
+            return new Warn(undefined, mongodb_1.ObjectId.createFromHexString(userId), cause, false, undefined, WarnState.PENDING, [log.uuid], _tempDate, moderatorId, moderatorId, _tempDate);
         }
     }
 
