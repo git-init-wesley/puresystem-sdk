@@ -10,7 +10,7 @@ export module warn {
 
     export enum WarnState {
         PENDING,
-        CLOSED,
+        REFUSED,
         ACCEPTED,
     }
 
@@ -85,7 +85,7 @@ export module warn {
             let _tempDate: number = Date.now();
             return new Warn(
                 undefined,
-                undefined,
+                ObjectId.createFromHexString(userId),
                 cause,
                 false,
                 undefined,
@@ -114,6 +114,10 @@ export module warn {
         addWarn(userId: string, cause: string, moderator: IUser): Promise<IWarn>;
 
         openWarn(warnId: string, moderator: IUser): Promise<IWarn>;
+
+        acceptWarn(warnId: string, moderator: IUser): Promise<IWarn>;
+
+        refuseWarn(warnId: string, moderator: IUser): Promise<IWarn>;
 
         updateWarn(cause: string, warnId: string, moderator: IUser): Promise<IWarn>;
 
