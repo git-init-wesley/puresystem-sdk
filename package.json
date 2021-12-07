@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@types/node": "^16.11.11",
-    "mongodb": "^4.2.1"
+    "mongodb": "^4.2.1",
+    "mongoose": "^6.0.14"
   }
 }
