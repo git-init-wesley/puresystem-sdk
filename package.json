@@ -1,15 +1,15 @@
 {
   "name": "@puresystem/puresystem-sdk",
-  "version": "1.1.0-beta.202112071640",
+  "version": "1.0.0-beta.202112151200",
   "description": "The SDK allowing the global creation of PureSystem.",
   "main": "dist/main.js",
   "types": "dist/main.d.js",
   "scripts": {
     "prepublish": "tsc",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsc & nodemon --exec 'mocha -r dotenv/config dist/main.test.js'",
     "start": "node dist/main.js",
-    "dev": "tsc -w & nodemon -r dotenv/config dist/main.js"
+    "dev": "tsc & nodemon -r dotenv/config dist/main.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,11 @@
   },
   "homepage": "https://github.com/puresystem-team/puresystem-sdk#readme",
   "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "dotenv": "^10.0.0",
+    "mocha": "^9.1.3",
+    "nodemon": "^2.0.15",
+    "request": "^2.88.2",
     "typescript": "^4.5.2"
   },
   "directories": {
@@ -34,7 +39,6 @@
   },
   "dependencies": {
     "@types/node": "^16.11.11",
-    "dotenv": "^10.0.0",
     "mongodb": "^4.2.1",
     "mongoose": "^6.0.14"
   }
